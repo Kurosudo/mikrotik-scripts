@@ -1,0 +1,22 @@
+# DHCP to DNS
+# Copyright (c) 2018 Kurosudo
+# Licensed under MIT
+
+#DOMAIN.TTL SETUP
+:local ttl "local"
+:local domain "domain"
+
+#remove all existing static record with comment dynamic_
+:foreach i in=[/ip dns static find comment~"dynamic_*"] do={
+/ip dns static rem $i
+}
+
+#Find Static leases
+:foreach i in=[/ip dhcp-server lease find dynamic=no] do={
+#Set variables
+:local hostname [ /ip dhcp-server lease get $i host-name]
+:local ip [ /ip dhcp-server lease get $i address]
+:local fdomain "$hostname.$domain.$ttl"
+#Create DNS record
+/ip dns static add name=$fdomain address=$ip comment="dynamic_$ip"
+}
